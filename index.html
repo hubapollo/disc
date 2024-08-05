@@ -1,67 +1,102 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste de Perfil Comportamental DISC</title>
+    <title>Teste DISC</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
             margin: 0;
             padding: 0;
-            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f7f7f7;
         }
 
         .container {
+            width: 80%;
             max-width: 800px;
-            margin: 50px auto;
-            background-color: #fff;
             padding: 20px;
+            background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 5px;
+            border-radius: 8px;
             overflow: hidden;
-            transition: all 0.3s ease-in-out;
         }
 
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-
-        .question {
+        .progress-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 20px;
             margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 10px;
+            width: 0;
+            background-color: #4caf50;
+            transition: width 0.3s ease-in-out;
+        }
+
+        .card {
+            margin: 20px 0;
             padding: 20px;
-            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .card h2 {
+            margin-top: 0;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .button {
+            padding: 10px 20px;
+            background-color: #2196f3; /* Azul */
+            color: white;
+            border: none;
             border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease-in-out;
-        }
-
-        .question:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-        }
-
-        .question h2 {
-            color: #333;
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-
-        label {
-            display: block;
-            padding: 10px;
-            background-color: #e9e9ef;
-            margin-bottom: 5px;
-            border-radius: 3px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s ease;
+            text-align: left;
         }
 
-        label:hover {
-            background-color: #d1d1e3;
+        .button:hover {
+            background-color: #1976d2; /* Azul escuro */
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #resultContainer {
+            display: none;
+            margin-top: 20px;
+        }
+
+        #chartContainer {
+            width: 100%;
+            height: 400px;
+        }
+
+        #chart {
+            height: 100%;
+            width: 100%;
         }
 
         #nameInput {
@@ -75,86 +110,16 @@
 
         .hide {
             display: none;
-        input[type="radio"] {
-            margin-right: 10px;
-        }
-
-        .submit-button {
-            background-color: #4a90e2;
-            color: white;
-            padding: 15px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.3s;
-            margin-top: 20px;
-        }
-
-        .submit-button:hover {
-            background-color: #357ab7;
-        }
-
-        .result {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #e9f1f9;
-            border-radius: 5px;
-            font-size: 18px;
-            color: #333;
-            display: none;
-        }
-
-        .progress-bar {
-            height: 10px;
-            background-color: #e9e9ef;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            transition: all 0.3s ease-in-out;
-        }
-
-        .progress {
-            height: 100%;
-            width: 0;
-            background-color: #4a90e2;
-            transition: width 0.3s ease-in-out;
-        }
-
-        .print-button {
-            background-color: #4a90e2;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 20px;
-        }
-
-        .print-button:hover {
-            background-color: #357ab7;
-        }
-
-        .chart {
-            width: 100%;
-            height: 400px;
-            margin-top: 20px;
         }
 
         @media print {
             body * {
                 visibility: hidden;
             }
-
-            #result,
-            #result * {
+            #resultContainer, #resultContainer * {
                 visibility: visible;
             }
-
-            #result {
+            #resultContainer {
                 position: absolute;
                 left: 0;
                 top: 0;
@@ -163,197 +128,239 @@
                 box-shadow: none;
             }
         }
+
     </style>
 </head>
-
 <body>
     <div class="container">
-        <h1>Teste de Perfil Comportamental DISC</h1>
+        <input type="text" id="nameInput" placeholder="Digite seu nome" required>
+
         <div class="progress-bar">
             <div class="progress" id="progress"></div>
         </div>
-        <form id="discTestForm">
-            <div class="question">
-                <h2>Nome:</h2>
-                <input type="text" id="userName" placeholder="Digite seu nome" required>
+        
+        <div id="questionContainer">
+            <!-- Question Cards -->
+            <div class="card" id="question1">
+                <h2>Pergunta 1</h2>
+                <p>Quando estou em um projeto de grupo, eu prefiro:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Tomar a liderança e garantir que tudo esteja no caminho certo.</button>
+                    <button class="button" onclick="answerQuestion('I')">Motivar e inspirar os outros a fazerem seu melhor.</button>
+                    <button class="button" onclick="answerQuestion('S')">Trabalhar junto com os outros, garantindo que todos estejam confortáveis.</button>
+                    <button class="button" onclick="answerQuestion('C')">Focar nos detalhes e assegurar que tudo esteja sendo feito corretamente.</button>
+                </div>
             </div>
 
-            <!-- Perguntas do teste DISC -->
-            <div class="question" id="question1">
-                <h2>1. Quando estou em um projeto de grupo, eu prefiro:</h2>
-                <label><input type="radio" name="q1" value="D" required> Tomar a liderança e garantir que tudo esteja no
-                    caminho certo.</label>
-                <label><input type="radio" name="q1" value="I"> Motivar e inspirar os outros a fazerem seu melhor.</label>
-                <label><input type="radio" name="q1" value="S"> Trabalhar junto com os outros, garantindo que todos
-                    estejam confortáveis.</label>
-                <label><input type="radio" name="q1" value="C"> Focar nos detalhes e assegurar que tudo esteja sendo feito
-                    corretamente.</label>
+            <!-- Repeat Question Cards as Needed -->
+            <div class="card hide" id="question2">
+                <h2>Pergunta 2</h2>
+                <p>Quando enfrento um desafio, eu geralmente:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Ataco diretamente e encontro a solução mais rápida.</button>
+                    <button class="button" onclick="answerQuestion('I')">Reúno pessoas para obter novas ideias.</button>
+                    <button class="button" onclick="answerQuestion('S')">Avalio cuidadosamente as opções antes de agir.</button>
+                    <button class="button" onclick="answerQuestion('C')">Coleto todas as informações necessárias antes de decidir.</button>
+                </div>
             </div>
 
-            <div class="question" id="question2">
-                <h2>2. Quando enfrento um desafio, eu geralmente:</h2>
-                <label><input type="radio" name="q2" value="D" required> Ataco diretamente e encontro a solução mais
-                    rápida.</label>
-                <label><input type="radio" name="q2" value="I"> Reúno pessoas para obter novas ideias.</label>
-                <label><input type="radio" name="q2" value="S"> Avalio cuidadosamente as opções antes de agir.</label>
-                <label><input type="radio" name="q2" value="C"> Coleto todas as informações necessárias antes de
-                    decidir.</label>
+            <div class="card hide" id="question3">
+                <h2>Pergunta 3</h2>
+                <p>Em situações sociais, eu sou mais propenso a:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Assumir o controle e liderar a conversa.</button>
+                    <button class="button" onclick="answerQuestion('I')">Fazer amigos rapidamente e divertir a todos.</button>
+                    <button class="button" onclick="answerQuestion('S')">Ficar observando até me sentir confortável.</button>
+                    <button class="button" onclick="answerQuestion('C')">Analisar a situação antes de interagir.</button>
+                </div>
             </div>
 
-            <div class="question" id="question3">
-                <h2>3. Em situações sociais, eu sou mais propenso a:</h2>
-                <label><input type="radio" name="q3" value="D" required> Assumir o controle e liderar a conversa.</label>
-                <label><input type="radio" name="q3" value="I"> Fazer amigos rapidamente e divertir a todos.</label>
-                <label><input type="radio" name="q3" value="S"> Ficar observando até me sentir confortável.</label>
-                <label><input type="radio" name="q3" value="C"> Analisar a situação antes de interagir.</label>
+            <div class="card hide" id="question4">
+                <h2>Pergunta 4</h2>
+                <p>Quando se trata de prazos, eu:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Gosto de superá-los e terminar antes do tempo.</button>
+                    <button class="button" onclick="answerQuestion('I')">Costumo procrastinar, mas consigo terminar a tempo.</button>
+                    <button class="button" onclick="answerQuestion('S')">Planejo meu tempo cuidadosamente para não me apressar.</button>
+                    <button class="button" onclick="answerQuestion('C')">Me certifico de seguir um cronograma rigoroso para não perder o prazo.</button>
+                </div>
             </div>
 
-            <div class="question" id="question4">
-                <h2>4. Quando se trata de prazos, eu:</h2>
-                <label><input type="radio" name="q4" value="D" required> Gosto de superá-los e terminar antes do
-                    tempo.</label>
-                <label><input type="radio" name="q4" value="I"> Costumo procrastinar, mas consigo terminar a
-                    tempo.</label>
-                <label><input type="radio" name="q4" value="S"> Planejo meu tempo cuidadosamente para não me apressar.</label>
-                <label><input type="radio" name="q4" value="C"> Me certifico de seguir um cronograma rigoroso para não
-                    perder o prazo.</label>
+            <div class="card hide" id="question5">
+                <h2>Pergunta 5</h2>
+                <p>Ao tomar decisões, eu geralmente:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Sou rápido e decidido.</button>
+                    <button class="button" onclick="answerQuestion('I')">Busco o consenso e a opinião de outros.</button>
+                    <button class="button" onclick="answerQuestion('S')">Prefiro tomar meu tempo para considerar todas as opções.</button>
+                    <button class="button" onclick="answerQuestion('C')">Baseio-me em dados e lógica para tomar decisões.</button>
+                </div>
             </div>
 
-            <div class="question" id="question5">
-                <h2>5. Ao tomar decisões, eu geralmente:</h2>
-                <label><input type="radio" name="q5" value="D" required> Sou rápido e decidido.</label>
-                <label><input type="radio" name="q5" value="I"> Busco o consenso e a opinião de outros.</label>
-                <label><input type="radio" name="q5" value="S"> Prefiro tomar meu tempo para considerar todas as
-                    opções.</label>
-                <label><input type="radio" name="q5" value="C"> Baseio-me em dados e lógica para tomar decisões.</label>
+            <div class="card hide" id="question6">
+                <h2>Pergunta 6</h2>
+                <p>Em um dia típico de trabalho, eu prefiro:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Resolver problemas complexos e assumir riscos.</button>
+                    <button class="button" onclick="answerQuestion('I')">Colaborar com colegas e criar novas ideias.</button>
+                    <button class="button" onclick="answerQuestion('S')">Ter um ambiente de trabalho estável e previsível.</button>
+                    <button class="button" onclick="answerQuestion('C')">Trabalhar em tarefas detalhadas e precisas.</button>
+                </div>
             </div>
 
-            <div class="question" id="question6">
-                <h2>6. Em um dia típico de trabalho, eu prefiro:</h2>
-                <label><input type="radio" name="q6" value="D" required> Resolver problemas complexos e assumir
-                    riscos.</label>
-                <label><input type="radio" name="q6" value="I"> Colaborar com colegas e criar novas ideias.</label>
-                <label><input type="radio" name="q6" value="S"> Ter um ambiente de trabalho estável e previsível.</label>
-                <label><input type="radio" name="q6" value="C"> Trabalhar em tarefas detalhadas e precisas.</label>
+            <div class="card hide" id="question7">
+                <h2>Pergunta 7</h2>
+                <p>Quando encontro um obstáculo, minha reação é:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Superá-lo com determinação e assertividade.</button>
+                    <button class="button" onclick="answerQuestion('I')">Usar minha criatividade para encontrar uma solução.</button>
+                    <button class="button" onclick="answerQuestion('S')">Ser paciente e procurar um caminho alternativo.</button>
+                    <button class="button" onclick="answerQuestion('C')">Analisar todas as causas possíveis antes de agir.</button>
+                </div>
             </div>
 
-            <div class="question" id="question7">
-                <h2>7. Quando encontro um obstáculo, minha reação é:</h2>
-                <label><input type="radio" name="q7" value="D" required> Superá-lo com determinação e assertividade.</label>
-                <label><input type="radio" name="q7" value="I"> Usar minha criatividade para encontrar uma solução.</label>
-                <label><input type="radio" name="q7" value="S"> Ser paciente e procurar um caminho alternativo.</label>
-                <label><input type="radio" name="q7" value="C"> Analisar todas as causas possíveis antes de agir.</label>
+            <div class="card hide" id="question8">
+                <h2>Pergunta 8</h2>
+                <p>Em uma reunião, eu prefiro:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Focar nos objetivos e resultados.</button>
+                    <button class="button" onclick="answerQuestion('I')">Interagir e trocar ideias com os outros.</button>
+                    <button class="button" onclick="answerQuestion('S')">Ouvir e apoiar as opiniões dos outros.</button>
+                    <button class="button" onclick="answerQuestion('C')">Apresentar dados e análises detalhadas.</button>
+                </div>
             </div>
 
-            <div class="question" id="question8">
-                <h2>8. Em uma reunião, eu prefiro:</h2>
-                <label><input type="radio" name="q8" value="D" required> Focar nos objetivos e resultados.</label>
-                <label><input type="radio" name="q8" value="I"> Interagir e trocar ideias com os outros.</label>
-                <label><input type="radio" name="q8" value="S"> Ouvir e apoiar as opiniões dos outros.</label>
-                <label><input type="radio" name="q8" value="C"> Apresentar dados e análises detalhadas.</label>
+            <div class="card hide" id="question9">
+                <h2>Pergunta 9</h2>
+                <p>Quando se trata de mudanças, eu:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Abraço e procuro implementá-las rapidamente.</button>
+                    <button class="button" onclick="answerQuestion('I')">Gosto de explorar novas possibilidades.</button>
+                    <button class="button" onclick="answerQuestion('S')">Prefiro manter as coisas como estão.</button>
+                    <button class="button" onclick="answerQuestion('C')">Analiso os prós e contras antes de aceitar.</button>
+                </div>
             </div>
 
-            <div class="question" id="question9">
-                <h2>9. Quando se trata de mudanças, eu:</h2>
-                <label><input type="radio" name="q9" value="D" required> Abraço e procuro implementá-las rapidamente.</label>
-                <label><input type="radio" name="q9" value="I"> Gosto de explorar novas possibilidades.</label>
-                <label><input type="radio" name="q9" value="S"> Prefiro manter as coisas como estão.</label>
-                <label><input type="radio" name="q9" value="C"> Analiso os prós e contras antes de aceitar.</label>
+            <div class="card hide" id="question10">
+                <h2>Pergunta 10</h2>
+                <p>Se eu tenho um desentendimento com alguém, eu:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Confronto a pessoa e resolvo o problema diretamente.</button>
+                    <button class="button" onclick="answerQuestion('I')">Procuro maneiras de suavizar a situação com humor.</button>
+                    <button class="button" onclick="answerQuestion('S')">Tento encontrar um compromisso que funcione para ambos.</button>
+                    <button class="button" onclick="answerQuestion('C')">Reavalio os fatos e apresento minha perspectiva calmamente.</button>
+                </div>
             </div>
 
-            <div class="question" id="question10">
-                <h2>10. Se eu tenho um desentendimento com alguém, eu:</h2>
-                <label><input type="radio" name="q10" value="D" required> Confronto a pessoa e resolvo o problema
-                    diretamente.</label>
-                <label><input type="radio" name="q10" value="I"> Procuro maneiras de suavizar a situação com humor.</label>
-                <label><input type="radio" name="q10" value="S"> Tento encontrar um compromisso que funcione para
-                    ambos.</label>
-                <label><input type="radio" name="q10" value="C"> Reavalio os fatos e apresento minha perspectiva
-                    calmamente.</label>
+            <div class="card hide" id="question11">
+                <h2>Pergunta 11</h2>
+                <p>Quando estou em uma equipe, eu geralmente:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Tomo a iniciativa e lidero as atividades.</button>
+                    <button class="button" onclick="answerQuestion('I')">Encorajo todos a participar e manter a moral alta.</button>
+                    <button class="button" onclick="answerQuestion('S')">Contribuo de forma consistente e apoio os outros.</button>
+                    <button class="button" onclick="answerQuestion('C')">Forneço dados precisos e relatórios detalhados.</button>
+                </div>
             </div>
 
-            <div class="question" id="question11">
-                <h2>11. Quando estou em uma equipe, eu geralmente:</h2>
-                <label><input type="radio" name="q11" value="D" required> Tomo a iniciativa e lidero as atividades.</label>
-                <label><input type="radio" name="q11" value="I"> Encorajo todos a participar e manter a moral alta.</label>
-                <label><input type="radio" name="q11" value="S"> Contribuo de forma consistente e apoio os outros.</label>
-                <label><input type="radio" name="q11" value="C"> Forneço dados precisos e relatórios detalhados.</label>
+            <div class="card hide" id="question12">
+                <h2>Pergunta 12</h2>
+                <p>Ao enfrentar um problema, eu prefiro:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Agir rapidamente para encontrar uma solução.</button>
+                    <button class="button" onclick="answerQuestion('I')">Pensar fora da caixa e ser criativo.</button>
+                    <button class="button" onclick="answerQuestion('S')">Consultar os outros e ouvir suas sugestões.</button>
+                    <button class="button" onclick="answerQuestion('C')">Reunir informações e analisar antes de decidir.</button>
+                </div>
             </div>
 
-            <div class="question" id="question12">
-                <h2>12. Ao enfrentar um problema, eu prefiro:</h2>
-                <label><input type="radio" name="q12" value="D" required> Agir rapidamente para encontrar uma solução.</label>
-                <label><input type="radio" name="q12" value="I"> Pensar fora da caixa e ser criativo.</label>
-                <label><input type="radio" name="q12" value="S"> Consultar os outros e ouvir suas sugestões.</label>
-                <label><input type="radio" name="q12" value="C"> Reunir informações e analisar antes de decidir.</label>
+            <div class="card hide" id="question13">
+                <h2>Pergunta 13</h2>
+                <p>Em termos de organização, eu sou:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Estruturado e eficiente.</button>
+                    <button class="button" onclick="answerQuestion('I')">Flexível e improvisador.</button>
+                    <button class="button" onclick="answerQuestion('S')">Metódico e paciente.</button>
+                    <button class="button" onclick="answerQuestion('C')">Detalhista e preciso.</button>
+                </div>
             </div>
 
-            <div class="question" id="question13">
-                <h2>13. Em termos de organização, eu sou:</h2>
-                <label><input type="radio" name="q13" value="D" required> Estruturado e eficiente.</label>
-                <label><input type="radio" name="q13" value="I"> Flexível e improvisador.</label>
-                <label><input type="radio" name="q13" value="S"> Metódico e paciente.</label>
-                <label><input type="radio" name="q13" value="C"> Detalhista e preciso.</label>
+            <div class="card hide" id="question14">
+                <h2>Pergunta 14</h2>
+                <p>Quando estou sob pressão, eu:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Me torno ainda mais focado e determinado.</button>
+                    <button class="button" onclick="answerQuestion('I')">Uso minha energia para manter o ambiente positivo.</button>
+                    <button class="button" onclick="answerQuestion('S')">Permaneço calmo e procuro soluções estáveis.</button>
+                    <button class="button" onclick="answerQuestion('C')">Verifico novamente para garantir que tudo esteja correto.</button>
+                </div>
             </div>
 
-            <div class="question" id="question14">
-                <h2>14. Quando estou sob pressão, eu:</h2>
-                <label><input type="radio" name="q14" value="D" required> Me torno ainda mais focado e determinado.</label>
-                <label><input type="radio" name="q14" value="I"> Uso minha energia para manter o ambiente positivo.</label>
-                <label><input type="radio" name="q14" value="S"> Permaneço calmo e procuro soluções estáveis.</label>
-                <label><input type="radio" name="q14" value="C"> Verifico novamente para garantir que tudo esteja
-                    correto.</label>
+            <div class="card hide" id="question15">
+                <h2>Pergunta 15</h2>
+                <p>Em situações de conflito, minha abordagem é:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Ser direto e encontrar uma solução rápida.</button>
+                    <button class="button" onclick="answerQuestion('I')">Usar comunicação para diminuir a tensão.</button>
+                    <button class="button" onclick="answerQuestion('S')">Evitar confronto e buscar harmonia.</button>
+                    <button class="button" onclick="answerQuestion('C')">Analisar o problema logicamente para resolver.</button>
+                </div>
             </div>
 
-            <div class="question" id="question15">
-                <h2>15. Em situações de conflito, minha abordagem é:</h2>
-                <label><input type="radio" name="q15" value="D" required> Ser direto e encontrar uma solução rápida.</label>
-                <label><input type="radio" name="q15" value="I"> Usar comunicação para diminuir a tensão.</label>
-                <label><input type="radio" name="q15" value="S"> Evitar confronto e buscar harmonia.</label>
-                <label><input type="radio" name="q15" value="C"> Analisar o problema logicamente para resolver.</label>
+            <div class="card hide" id="question16">
+                <h2>Pergunta 16</h2>
+                <p>Ao definir metas, eu prefiro:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Desafios ousados e objetivos ambiciosos.</button>
+                    <button class="button" onclick="answerQuestion('I')">Metas que permitam criatividade e interação.</button>
+                    <button class="button" onclick="answerQuestion('S')">Objetivos que garantam estabilidade e segurança.</button>
+                    <button class="button" onclick="answerQuestion('C')">Metas bem definidas com passos claros.</button>
+                </div>
             </div>
 
-            <div class="question" id="question16">
-                <h2>16. Ao definir metas, eu prefiro:</h2>
-                <label><input type="radio" name="q16" value="D" required> Desafios ousados e objetivos ambiciosos.</label>
-                <label><input type="radio" name="q16" value="I"> Metas que permitam criatividade e interação.</label>
-                <label><input type="radio" name="q16" value="S"> Objetivos que garantam estabilidade e segurança.</label>
-                <label><input type="radio" name="q16" value="C"> Metas bem definidas com passos claros.</label>
+            <div class="card hide" id="question17">
+                <h2>Pergunta 17</h2>
+                <p>Quando estou aprendendo algo novo, eu prefiro:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Mergulhar e aprender fazendo.</button>
+                    <button class="button" onclick="answerQuestion('I')">Aprender em um ambiente interativo e dinâmico.</button>
+                    <button class="button" onclick="answerQuestion('S')">Aprender de forma gradual e com suporte.</button>
+                    <button class="button" onclick="answerQuestion('C')">Estudar os detalhes e teorias por trás do assunto.</button>
+                </div>
             </div>
 
-            <div class="question" id="question17">
-                <h2>17. Quando estou aprendendo algo novo, eu prefiro:</h2>
-                <label><input type="radio" name="q17" value="D" required> Mergulhar e aprender fazendo.</label>
-                <label><input type="radio" name="q17" value="I"> Aprender em um ambiente interativo e dinâmico.</label>
-                <label><input type="radio" name="q17" value="S"> Aprender de forma gradual e com suporte.</label>
-                <label><input type="radio" name="q17" value="C"> Estudar os detalhes e teorias por trás do assunto.</label>
+            <div class="card hide" id="question18">
+                <h2>Pergunta 18</h2>
+                <p>Em um projeto, eu valorizo mais:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Resultados e eficiência.</button>
+                    <button class="button" onclick="answerQuestion('I')">Criatividade e inovação.</button>
+                    <button class="button" onclick="answerQuestion('S')">Cooperação e harmonia.</button>
+                    <button class="button" onclick="answerQuestion('C')">Precisão e qualidade.</button>
+                </div>
             </div>
 
-            <div class="question" id="question18">
-                <h2>18. Em um projeto, eu valorizo mais:</h2>
-                <label><input type="radio" name="q18" value="D" required> Resultados e eficiência.</label>
-                <label><input type="radio" name="q18" value="I"> Criatividade e inovação.</label>
-                <label><input type="radio" name="q18" value="S"> Cooperação e harmonia.</label>
-                <label><input type="radio" name="q18" value="C"> Precisão e qualidade.</label>
+            <div class="card hide" id="question19">
+                <h2>Pergunta 19</h2>
+                <p>Se algo inesperado acontece, eu:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Tomo controle e ajusto o plano rapidamente.</button>
+                    <button class="button" onclick="answerQuestion('I')">Improvizo e adapto a situação.</button>
+                    <button class="button" onclick="answerQuestion('S')">Mantenho a calma e busco equilíbrio.</button>
+                    <button class="button" onclick="answerQuestion('C')">Avalio todas as opções antes de agir.</button>
+                </div>
             </div>
 
-            <div class="question" id="question19">
-                <h2>19. Se algo inesperado acontece, eu:</h2>
-                <label><input type="radio" name="q19" value="D" required> Tomo controle e ajusto o plano rapidamente.</label>
-                <label><input type="radio" name="q19" value="I"> Improvizo e adapto a situação.</label>
-                <label><input type="radio" name="q19" value="S"> Mantenho a calma e busco equilíbrio.</label>
-                <label><input type="radio" name="q19" value="C"> Avalio todas as opções antes de agir.</label>
+            <div class="card hide" id="question20">
+                <h2>Pergunta 20</h2>
+                <p>Minha principal força em uma equipe é:</p>
+                <div class="button-group">
+                    <button class="button" onclick="answerQuestion('D')">Liderar e tomar decisões rápidas.</button>
+                    <button class="button" onclick="answerQuestion('I')">Inspirar e conectar pessoas.</button>
+                    <button class="button" onclick="answerQuestion('S')">Ouvir e apoiar os colegas.</button>
+                    <button class="button" onclick="answerQuestion('C')">Organizar e fornecer detalhes.</button>
+                </div>
             </div>
-
-            <div class="question" id="question20">
-                <h2>20. Minha principal força em uma equipe é:</h2>
-                <label><input type="radio" name="q20" value="D" required> Liderar e tomar decisões rápidas.</label>
-                <label><input type="radio" name="q20" value="I"> Inspirar e conectar pessoas.</label>
-                <label><input type="radio" name="q20" value="S"> Ouvir e apoiar os colegas.</label>
-                <label><input type="radio" name="q20" value="C"> Organizar e fornecer detalhes.</label>
-            </div>
-
-         </div>
         </div>
 
         <div id="resultContainer">
