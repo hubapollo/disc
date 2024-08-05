@@ -138,7 +138,8 @@
                 visibility: hidden;
             }
 
-            #result, #result * {
+            #result,
+            #result * {
                 visibility: visible;
             }
 
@@ -371,16 +372,13 @@
             let percentS = ((scores.S / total) * 100).toFixed(2);
             let percentC = ((scores.C / total) * 100).toFixed(2);
 
-            // Criar array de resultados
+            // Criar array de resultados com pontuações maiores que 20
             let resultsArray = [
                 { type: "D", percent: percentD },
                 { type: "I", percent: percentI },
                 { type: "S", percent: percentS },
                 { type: "C", percent: percentC }
-            ];
-
-            // Ordenar resultados
-            resultsArray.sort((a, b) => b.percent - a.percent);
+            ].filter(item => item.percent > 20);
 
             // Obter nome do usuário
             let userName = document.getElementById("userName").value;
@@ -398,10 +396,10 @@
             new Chart(canvas, {
                 type: 'bar',
                 data: {
-                    labels: resultsArray.map(item => item.type),
+                    labels: ['D', 'I', 'S', 'C'], // Ordem DISC mantida
                     datasets: [{
                         label: 'Percentual',
-                        data: resultsArray.map(item => item.percent),
+                        data: [percentD, percentI, percentS, percentC], // Dados em ordem DISC
                         backgroundColor: ['#4a90e2', '#50e3c2', '#b8e986', '#f8e71c'],
                         borderColor: ['#357ab7', '#3cbfa6', '#9dd870', '#e4c917'],
                         borderWidth: 1
@@ -422,8 +420,8 @@
                 }
             });
 
-            // Identificar combinação de perfis
-            let combination = resultsArray.slice(0, 3).map(item => item.type).join(" + ");
+            // Identificar combinação de perfis, ignorando aqueles com 20% ou menos
+            let combination = resultsArray.map(item => item.type).join(" + ");
             let profileDescription = getProfileDescription(combination);
 
             // Mostrar descrição do perfil
@@ -745,7 +743,7 @@
                         </ul>
                     `;
                 default:
-                    return 'Perfil não identificado.';
+                    return 'Perfil não identificado. Por favor, tente novamente.';
             }
         }
 
