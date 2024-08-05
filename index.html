@@ -11,6 +11,7 @@
             background-color: #f4f4f9;
             margin: 0;
             padding: 0;
+            overflow-x: hidden;
         }
 
         .container {
@@ -20,6 +21,8 @@
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 5px;
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
         }
 
         h1 {
@@ -29,6 +32,16 @@
 
         .question {
             margin-bottom: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .question:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
 
         .question h2 {
@@ -65,6 +78,7 @@
             cursor: pointer;
             width: 100%;
             transition: background-color 0.3s;
+            margin-top: 20px;
         }
 
         .submit-button:hover {
@@ -79,6 +93,22 @@
             font-size: 18px;
             color: #333;
             display: none;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: #e9e9ef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .progress {
+            height: 100%;
+            width: 0;
+            background-color: #4a90e2;
+            transition: width 0.3s ease-in-out;
         }
 
         .print-button {
@@ -96,12 +126,39 @@
         .print-button:hover {
             background-color: #357ab7;
         }
+
+        .chart {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #result, #result * {
+                visibility: visible;
+            }
+
+            #result {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
         <h1>Teste de Perfil Comportamental DISC</h1>
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
         <form id="discTestForm">
             <div class="question">
                 <h2>Nome:</h2>
@@ -286,9 +343,15 @@
             <button type="submit" class="submit-button">Enviar Respostas</button>
         </form>
 
-        <div id="result" class="result"></div>
+        <div id="result" class="result">
+            <div id="chartContainer" class="chart"></div>
+            <h2 id="userNameResult"></h2>
+            <div id="description"></div>
+            <button class="print-button" onclick="window.print()">Imprimir Resultado</button>
+        </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.getElementById("discTestForm").addEventListener("submit", function (e) {
             e.preventDefault();
@@ -322,23 +385,53 @@
             // Obter nome do usuário
             let userName = document.getElementById("userName").value;
 
-            // Mostrar resultados
-            let resultDiv = document.getElementById("result");
-            resultDiv.style.display = "block";
-            resultDiv.innerHTML = `
-                <h2>Resultados de ${userName}</h2>
-                <p><strong>Perfil Dominante:</strong> ${resultsArray[0].type} (${resultsArray[0].percent}%)</p>
-                <p><strong>Perfil Secundário:</strong> ${resultsArray[1].type} (${resultsArray[1].percent}%)</p>
-                <p><strong>Terceiro Perfil:</strong> ${resultsArray[2].type} (${resultsArray[2].percent}%)</p>
-                <p><strong>Quarto Perfil:</strong> ${resultsArray[3].type} (${resultsArray[3].percent}%)</p>
-                <button class="print-button" onclick="window.print()">Imprimir Resultado</button>
-            `;
+            // Mostrar nome no resultado
+            document.getElementById("userNameResult").innerHTML = `<strong>Resultados de:</strong> ${userName}`;
+
+            // Mostrar resultados no gráfico
+            let chartContainer = document.getElementById('chartContainer');
+            chartContainer.innerHTML = ''; // Limpar gráfico existente
+
+            let canvas = document.createElement('canvas');
+            chartContainer.appendChild(canvas);
+
+            new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: resultsArray.map(item => item.type),
+                    datasets: [{
+                        label: 'Percentual',
+                        data: resultsArray.map(item => item.percent),
+                        backgroundColor: ['#4a90e2', '#50e3c2', '#b8e986', '#f8e71c'],
+                        borderColor: ['#357ab7', '#3cbfa6', '#9dd870', '#e4c917'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
 
             // Identificar combinação de perfis
             let combination = resultsArray.slice(0, 3).map(item => item.type).join(" + ");
             let profileDescription = getProfileDescription(combination);
 
-            resultDiv.innerHTML += `<h3>Descrição do Perfil</h3><p>${profileDescription}</p>`;
+            // Mostrar descrição do perfil
+            document.getElementById("description").innerHTML = `<h3>Descrição do Perfil</h3><p>${profileDescription}</p>`;
+
+            // Exibir resultado
+            document.getElementById("result").style.display = "block";
+            document.getElementById("discTestForm").style.display = "none";
         });
 
         function getProfileDescription(combination) {
@@ -655,6 +748,17 @@
                     return 'Perfil não identificado.';
             }
         }
+
+        const questions = document.querySelectorAll('.question input');
+        questions.forEach((input, index) => {
+            input.addEventListener('change', () => {
+                const progress = document.getElementById('progress');
+                const totalQuestions = 20;
+                const answeredQuestions = document.querySelectorAll('.question input:checked').length;
+                const progressPercent = (answeredQuestions / totalQuestions) * 100;
+                progress.style.width = progressPercent + '%';
+            });
+        });
     </script>
 </body>
 
