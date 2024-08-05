@@ -64,6 +64,17 @@
             background-color: #d1d1e3;
         }
 
+        #nameInput {
+            margin-bottom: 20px;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .hide {
+            display: none;
         input[type="radio"] {
             margin-right: 10px;
         }
@@ -145,10 +156,11 @@
 
             #result {
                 position: absolute;
-                top: 0;
                 left: 0;
-                right: 0;
-                bottom: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+                box-shadow: none;
             }
         }
     </style>
@@ -341,423 +353,243 @@
                 <label><input type="radio" name="q20" value="C"> Organizar e fornecer detalhes.</label>
             </div>
 
-            <button type="submit" class="submit-button">Enviar Respostas</button>
-        </form>
+         </div>
+        </div>
 
-        <div id="result" class="result">
-            <div id="chartContainer" class="chart"></div>
-            <h2 id="userNameResult"></h2>
-            <div id="description"></div>
-            <button class="print-button" onclick="window.print()">Imprimir Resultado</button>
+        <div id="resultContainer">
+            <h2>Resultado DISC</h2>
+            <p id="userName"></p>
+            <div id="chartContainer">
+                <canvas id="chart"></canvas>
+            </div>
+            <div id="detailedResult"></div>
+            <button class="button" onclick="printResults()">Imprimir Resultado</button>
+            <button class="button" onclick="resetTest()">Refazer o Teste</button>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        document.getElementById("discTestForm").addEventListener("submit", function (e) {
-            e.preventDefault();
+        const totalQuestions = 20;
+        let currentQuestion = 1;
+        const results = { D: 0, I: 0, S: 0, C: 0 };
 
-            let scores = { D: 0, I: 0, S: 0, C: 0 };
-
-            // Contar as respostas
-            for (let i = 1; i <= 20; i++) {
-                let question = document.querySelector(`input[name="q${i}"]:checked`).value;
-                scores[question]++;
+        function answerQuestion(profile) {
+            results[profile]++;
+            const nextQuestion = currentQuestion + 1;
+            if (nextQuestion <= totalQuestions) {
+                document.getElementById(`question${currentQuestion}`).classList.add('hide');
+                document.getElementById(`question${nextQuestion}`).classList.remove('hide');
+                currentQuestion = nextQuestion;
+                updateProgressBar();
+            } else {
+                showResults();
             }
+        }
 
-            // Calcular os percentuais
-            let total = 20;
-            let percentD = ((scores.D / total) * 100).toFixed(2);
-            let percentI = ((scores.I / total) * 100).toFixed(2);
-            let percentS = ((scores.S / total) * 100).toFixed(2);
-            let percentC = ((scores.C / total) * 100).toFixed(2);
+        function updateProgressBar() {
+            const progress = (currentQuestion - 1) / totalQuestions * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
 
-            // Criar array de resultados com pontuações maiores que 20
-            let resultsArray = [
-                { type: "D", percent: percentD },
-                { type: "I", percent: percentI },
-                { type: "S", percent: percentS },
-                { type: "C", percent: percentC }
-            ].filter(item => item.percent > 20);
+        function showResults() {
+            document.getElementById('questionContainer').style.display = 'none';
+            document.getElementById('resultContainer').style.display = 'block';
 
-            // Obter nome do usuário
-            let userName = document.getElementById("userName").value;
+            const name = document.getElementById('nameInput').value;
+            document.getElementById('userName').innerText = `Nome: ${name}`;
 
-            // Mostrar nome no resultado
-            document.getElementById("userNameResult").innerHTML = `<strong>Resultados de:</strong> ${userName}`;
+            const data = [
+                (results.D / totalQuestions) * 100,
+                (results.I / totalQuestions) * 100,
+                (results.S / totalQuestions) * 100,
+                (results.C / totalQuestions) * 100
+            ];
+            const labels = ['Dominância', 'Influência', 'Estabilidade', 'Conformidade'];
 
-            // Mostrar resultados no gráfico
-            let chartContainer = document.getElementById('chartContainer');
-            chartContainer.innerHTML = ''; // Limpar gráfico existente
-
-            let canvas = document.createElement('canvas');
-            chartContainer.appendChild(canvas);
-
-            new Chart(canvas, {
+            const ctx = document.getElementById('chart').getContext('2d');
+            new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['D', 'I', 'S', 'C'], // Ordem DISC mantida
+                    labels: labels,
                     datasets: [{
-                        label: 'Percentual',
-                        data: [percentD, percentI, percentS, percentC], // Dados em ordem DISC
-                        backgroundColor: ['#4a90e2', '#50e3c2', '#b8e986', '#f8e71c'],
-                        borderColor: ['#357ab7', '#3cbfa6', '#9dd870', '#e4c917'],
-                        borderWidth: 1
+                        label: 'Pontuação DISC (%)',
+                        data: data,
+                        backgroundColor: ['#f44336', '#ff9800', '#4caf50', '#2196f3']
                     }]
                 },
                 options: {
+                    responsive: true,
                     scales: {
                         y: {
                             beginAtZero: true,
                             max: 100
                         }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
                     }
                 }
             });
 
-            // Identificar combinação de perfis, ignorando aqueles com 20% ou menos
-            let combination = resultsArray.map(item => item.type).join(" + ");
-            let profileDescription = getProfileDescription(combination);
-
-            // Mostrar descrição do perfil
-            document.getElementById("description").innerHTML = `<h3>Descrição do Perfil</h3><p>${profileDescription}</p>`;
-
-            // Exibir resultado
-            document.getElementById("result").style.display = "block";
-            document.getElementById("discTestForm").style.display = "none";
-        });
-
-        function getProfileDescription(combination) {
-            switch (combination) {
-                case 'D':
-                    return `
-                        <strong>Perfil Dominante (D)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você é do tipo que lidera com confiança e determinação...</li>
-                            <li><strong>Pontos Fortes:</strong> Liderança natural e capacidade de influenciar pessoas...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar trabalhar na escuta ativa...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Prefere ambientes dinâmicos, competitivos...</li>
-                            <li><strong>Dicas de Liderança:</strong> Encoraje sua equipe com metas claras...</li>
-                        </ul>
-                    `;
-                case 'I':
-                    return `
-                        <strong>Perfil Influente (I)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você é comunicativo(a) e carismático(a)...</li>
-                            <li><strong>Pontos Fortes:</strong> Excelência em comunicação e networking...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode ser necessário focar mais em detalhes...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes colaborativos e criativos...</li>
-                            <li><strong>Dicas de Liderança:</strong> Mantenha a equipe motivada com reuniões...</li>
-                        </ul>
-                    `;
-                case 'S':
-                    return `
-                        <strong>Perfil Estável (S)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você valoriza a harmonia e a cooperação...</li>
-                            <li><strong>Pontos Fortes:</strong> Alta capacidade de empatia e entendimento...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar trabalhar na aceitação...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes estáveis e previsíveis...</li>
-                            <li><strong>Dicas de Liderança:</strong> Envolva a equipe nas decisões...</li>
-                        </ul>
-                    `;
-                case 'C':
-                    return `
-                        <strong>Perfil Analítico (C)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você é detalhista e orientado(a) por dados...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade analítica e foco em dados concretos...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a interação...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes estruturados com regras claras...</li>
-                            <li><strong>Dicas de Liderança:</strong> Forneça dados e evidências para embasar decisões...</li>
-                        </ul>
-                    `;
-                case 'D + I':
-                    return `
-                        <strong>Perfil Dominante + Influente (D + I)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você combina a assertividade do perfil dominante com o carisma do perfil influente...</li>
-                            <li><strong>Pontos Fortes:</strong> Capacidade de tomar decisões rápidas e inspirar confiança...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar trabalhar no planejamento detalhado e organização...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes dinâmicos e orientados para metas, onde a inovação é encorajada...</li>
-                            <li><strong>Dicas de Liderança:</strong> Balanceie a ação rápida com reflexão cuidadosa...</li>
-                        </ul>
-                    `;
-                case 'D + S':
-                    return `
-                        <strong>Perfil Dominante + Estável (D + S)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você apresenta uma combinação única de liderança assertiva com paciência e consideração pelas necessidades da equipe...</li>
-                            <li><strong>Pontos Fortes:</strong> Capacidade de liderar com firmeza, mantendo a harmonia...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a flexibilidade diante de mudanças...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes que valorizam a estabilidade e a consistência...</li>
-                            <li><strong>Dicas de Liderança:</strong> Promova um ambiente colaborativo, incentivando a participação de todos...</li>
-                        </ul>
-                    `;
-                case 'D + C':
-                    return `
-                        <strong>Perfil Dominante + Analítico (D + C)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você combina a determinação do perfil dominante com a precisão analítica...</li>
-                            <li><strong>Pontos Fortes:</strong> Capacidade de liderar com clareza e dados concretos...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a comunicação interpessoal e empatia...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes que valorizam a precisão e o planejamento...</li>
-                            <li><strong>Dicas de Liderança:</strong> Forneça dados e evidências para embasar decisões...</li>
-                        </ul>
-                    `;
-                case 'I + D':
-                    return `
-                        <strong>Perfil Influente + Dominante (I + D)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você é uma força de carisma e determinação...</li>
-                            <li><strong>Pontos Fortes:</strong> Excelência em comunicação e liderança inspiradora...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a atenção aos detalhes...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes criativos e colaborativos...</li>
-                            <li><strong>Dicas de Liderança:</strong> Encoraje a colaboração em equipe...</li>
-                        </ul>
-                    `;
-                case 'I + S':
-                    return `
-                        <strong>Perfil Influente + Estável (I + S)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você combina habilidades sociais e empatia com uma abordagem calma e equilibrada...</li>
-                            <li><strong>Pontos Fortes:</strong> Capacidade de inspirar e motivar através da empatia...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a assertividade em situações de conflito...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes colaborativos e harmoniosos...</li>
-                            <li><strong>Dicas de Liderança:</strong> Promova um ambiente de trabalho acolhedor...</li>
-                        </ul>
-                    `;
-                case 'I + C':
-                    return `
-                        <strong>Perfil Influente + Analítico (I + C)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você equilibra a habilidade de comunicação com uma abordagem analítica...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para comunicar-se eficazmente e influenciar com dados...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a interação social...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes que valorizam a precisão e a criatividade...</li>
-                            <li><strong>Dicas de Liderança:</strong> Forneça dados e evidências para embasar decisões...</li>
-                        </ul>
-                    `;
-                case 'S + D':
-                    return `
-                        <strong>Perfil Estável + Dominante (S + D)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você apresenta uma combinação única de paciência e assertividade...</li>
-                            <li><strong>Pontos Fortes:</strong> Capacidade de liderar com firmeza e promover a cooperação...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a flexibilidade diante de mudanças...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes estáveis e desafiadores...</li>
-                            <li><strong>Dicas de Liderança:</strong> Promova um ambiente colaborativo...</li>
-                        </ul>
-                    `;
-                case 'S + I':
-                    return `
-                        <strong>Perfil Estável + Influente (S + I)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você combina habilidades sociais com uma abordagem equilibrada e paciente...</li>
-                            <li><strong>Pontos Fortes:</strong> Capacidade de inspirar e motivar através da empatia...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a assertividade em situações de conflito...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes colaborativos e harmoniosos...</li>
-                            <li><strong>Dicas de Liderança:</strong> Promova um ambiente de trabalho acolhedor...</li>
-                        </ul>
-                    `;
-                case 'S + C':
-                    return `
-                        <strong>Perfil Estável + Analítico (S + C)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você é uma força de estabilidade e precisão...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para analisar situações e tomar decisões bem embasadas...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a flexibilidade diante de mudanças...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes estruturados e previsíveis...</li>
-                            <li><strong>Dicas de Liderança:</strong> Promova um ambiente colaborativo...</li>
-                        </ul>
-                    `;
-                case 'C + D':
-                    return `
-                        <strong>Perfil Analítico + Dominante (C + D)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você é uma força de análise e liderança...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para liderar com clareza e dados concretos...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a comunicação interpessoal...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes que valorizam a precisão e o planejamento...</li>
-                            <li><strong>Dicas de Liderança:</strong> Forneça dados e evidências para embasar decisões...</li>
-                        </ul>
-                    `;
-                case 'C + I':
-                    return `
-                        <strong>Perfil Analítico + Influente (C + I)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você combina habilidades analíticas com comunicação persuasiva...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para comunicar-se eficazmente e influenciar com dados...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a interação social...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes que valorizam a precisão e a criatividade...</li>
-                            <li><strong>Dicas de Liderança:</strong> Forneça dados e evidências para embasar decisões...</li>
-                        </ul>
-                    `;
-                case 'C + S':
-                    return `
-                        <strong>Perfil Analítico + Estável (C + S)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você é uma força de análise e estabilidade...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para analisar situações e tomar decisões bem embasadas...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a flexibilidade diante de mudanças...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes estruturados e previsíveis...</li>
-                            <li><strong>Dicas de Liderança:</strong> Promova um ambiente colaborativo...</li>
-                        </ul>
-                    `;
-                case 'D + I + S':
-                    return `
-                        <strong>Perfil Dominante com Influente e Estável (D + I + S)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você combina assertividade, carisma e estabilidade...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para liderar com confiança e inspirar equipes...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a atenção aos detalhes...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes dinâmicos e colaborativos...</li>
-                            <li><strong>Dicas de Liderança:</strong> Encoraje a colaboração em equipe...</li>
-                        </ul>
-                    `;
-                case 'D + I + C':
-                    return `
-                        <strong>Perfil Dominante com Influente e Analítico (D + I + C)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você é uma força de carisma, liderança e análise...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para comunicar-se eficazmente e influenciar com dados...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a interação social...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes que valorizam a precisão e a criatividade...</li>
-                            <li><strong>Dicas de Liderança:</strong> Forneça dados e evidências para embasar decisões...</li>
-                        </ul>
-                    `;
-                case 'D + S + C':
-                    return `
-                        <strong>Perfil Dominante com Estável e Analítico (D + S + C)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você combina liderança assertiva com precisão analítica e estabilidade...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para liderar com clareza e dados concretos...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a comunicação interpessoal...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes que valorizam a precisão e o planejamento...</li>
-                            <li><strong>Dicas de Liderança:</strong> Forneça dados e evidências para embasar decisões...</li>
-                        </ul>
-                    `;
-                case 'I + D + S':
-                    return `
-                        <strong>Perfil Influente com Dominante e Estável (I + D + S)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você é uma força de carisma e estabilidade...</li>
-                            <li><strong>Pontos Fortes:</strong> Capacidade de liderar com confiança e promover cooperação...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a atenção aos detalhes...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes dinâmicos e colaborativos...</li>
-                            <li><strong>Dicas de Liderança:</strong> Encoraje a colaboração em equipe...</li>
-                        </ul>
-                    `;
-                case 'I + D + C':
-                    return `
-                        <strong>Perfil Influente com Dominante e Analítico (I + D + C)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você é uma força de carisma, liderança e análise...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para comunicar-se eficazmente e influenciar com dados...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a interação social...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes que valorizam a precisão e a criatividade...</li>
-                            <li><strong>Dicas de Liderança:</strong> Forneça dados e evidências para embasar decisões...</li>
-                        </ul>
-                    `;
-                case 'I + S + C':
-                    return `
-                        <strong>Perfil Influente com Estável e Analítico (I + S + C)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você combina habilidades sociais com análise e estabilidade...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para comunicar-se eficazmente e influenciar com dados...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a interação social...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes que valorizam a precisão e a criatividade...</li>
-                            <li><strong>Dicas de Liderança:</strong> Forneça dados e evidências para embasar decisões...</li>
-                        </ul>
-                    `;
-                case 'S + D + I':
-                    return `
-                        <strong>Perfil Estável com Dominante e Influente (S + D + I)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você é uma força de estabilidade e carisma...</li>
-                            <li><strong>Pontos Fortes:</strong> Capacidade de liderar com confiança e promover cooperação...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a atenção aos detalhes...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes dinâmicos e colaborativos...</li>
-                            <li><strong>Dicas de Liderança:</strong> Encoraje a colaboração em equipe...</li>
-                        </ul>
-                    `;
-                case 'S + D + C':
-                    return `
-                        <strong>Perfil Estável com Dominante e Analítico (S + D + C)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você combina liderança assertiva com precisão analítica e estabilidade...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para liderar com clareza e dados concretos...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a comunicação interpessoal...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes que valorizam a precisão e o planejamento...</li>
-                            <li><strong>Dicas de Liderança:</strong> Forneça dados e evidências para embasar decisões...</li>
-                        </ul>
-                    `;
-                case 'S + I + C':
-                    return `
-                        <strong>Perfil Estável com Influente e Analítico (S + I + C)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você combina habilidades sociais com análise e estabilidade...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para comunicar-se eficazmente e influenciar com dados...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a interação social...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes que valorizam a precisão e a criatividade...</li>
-                            <li><strong>Dicas de Liderança:</strong> Forneça dados e evidências para embasar decisões...</li>
-                        </ul>
-                    `;
-                case 'C + D + I':
-                    return `
-                        <strong>Perfil Analítico com Dominante e Influente (C + D + I)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você é uma força de análise e carisma...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para comunicar-se eficazmente e influenciar com dados...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a interação social...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes que valorizam a precisão e a criatividade...</li>
-                            <li><strong>Dicas de Liderança:</strong> Forneça dados e evidências para embasar decisões...</li>
-                        </ul>
-                    `;
-                case 'C + D + S':
-                    return `
-                        <strong>Perfil Analítico com Dominante e Estável (C + D + S)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você combina liderança assertiva com precisão analítica e estabilidade...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para liderar com clareza e dados concretos...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a comunicação interpessoal...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes que valorizam a precisão e o planejamento...</li>
-                            <li><strong>Dicas de Liderança:</strong> Forneça dados e evidências para embasar decisões...</li>
-                        </ul>
-                    `;
-                case 'C + I + S':
-                    return `
-                        <strong>Perfil Analítico com Influente e Estável (C + I + S)</strong>
-                        <ul>
-                            <li><strong>Descrição Geral:</strong> Você combina habilidades sociais com análise e estabilidade...</li>
-                            <li><strong>Pontos Fortes:</strong> Habilidade para comunicar-se eficazmente e influenciar com dados...</li>
-                            <li><strong>Áreas de Desenvolvimento:</strong> Pode precisar melhorar a interação social...</li>
-                            <li><strong>Ambiente Ideal de Trabalho:</strong> Ambientes que valorizam a precisão e a criatividade...</li>
-                            <li><strong>Dicas de Liderança:</strong> Forneça dados e evidências para embasar decisões...</li>
-                        </ul>
-                    `;
-                default:
-                    return 'Perfil não identificado. Por favor, tente novamente.';
-            }
+            displayDetailedResults(data, labels);
         }
 
-        const questions = document.querySelectorAll('.question input');
-        questions.forEach((input, index) => {
-            input.addEventListener('change', () => {
-                const progress = document.getElementById('progress');
-                const totalQuestions = 20;
-                const answeredQuestions = document.querySelectorAll('.question input:checked').length;
-                const progressPercent = (answeredQuestions / totalQuestions) * 100;
-                progress.style.width = progressPercent + '%';
-            });
-        });
+        function displayDetailedResults(data, labels) {
+            const detailedResult = document.getElementById('detailedResult');
+            const max1 = Math.max(...data);
+            const index1 = data.indexOf(max1);
+            const max2 = Math.max(...data.filter((_, i) => i !== index1));
+            const index2 = data.indexOf(max2);
+
+            let description = '';
+            if (max1 > 50) {
+                // Perfil único predominante
+                description = getProfileDescription(labels[index1]);
+            } else {
+                // Combinação de dois perfis
+                const profile1 = labels[index1].charAt(0);
+                const profile2 = labels[index2].charAt(0);
+                description = getCombinedProfileDescription(profile1, profile2);
+            }
+
+            detailedResult.innerHTML = description;
+        }
+
+        function getProfileDescription(profile) {
+            const descriptions = {
+                'Dominância': `
+                    <h3>Perfil Predominante: Dominante</h3>
+                    <p><strong>Características:</strong> Agressivo, competitivo, orientado para ação.</p>
+                    <p><strong>Pontos Fortes:</strong> Liderança forte e decisiva, capacidade de tomar decisões rápidas, alta motivação para alcançar resultados.</p>
+                    <p><strong>Pontos Fracos:</strong> Pode ser impaciente com detalhes, tendência a ignorar feedbacks emocionais.</p>
+                    <p><strong>Tomada de Decisão:</strong> Baseada em lógica, rápida, focada em resultados.</p>
+                    <p><strong>Ambientes Favoráveis:</strong> Ambientes de alta pressão e liderança onde a ação rápida é valorizada.</p>
+                `,
+                'Influência': `
+                    <h3>Perfil Predominante: Influente</h3>
+                    <p><strong>Características:</strong> Comunicativo, persuasivo, otimista.</p>
+                    <p><strong>Pontos Fortes:</strong> Habilidade em motivar e inspirar os outros, capacidade de socializar e criar conexões.</p>
+                    <p><strong>Pontos Fracos:</strong> Pode ser impulsivo ou ter dificuldade em seguir regras rígidas.</p>
+                    <p><strong>Tomada de Decisão:</strong> Baseada em intuição, frequentemente buscando consenso.</p>
+                    <p><strong>Ambientes Favoráveis:</strong> Situações que exigem criatividade e interação social.</p>
+                `,
+                'Estabilidade': `
+                    <h3>Perfil Predominante: Estável</h3>
+                    <p><strong>Características:</strong> Calmo, paciente, confiável.</p>
+                    <p><strong>Pontos Fortes:</strong> Habilidade em criar ambientes harmoniosos, excelente em cooperação e suporte.</p>
+                    <p><strong>Pontos Fracos:</strong> Pode resistir a mudanças ou evitar conflitos.</p>
+                    <p><strong>Tomada de Decisão:</strong> Cautelosa, orientada para o consenso.</p>
+                    <p><strong>Ambientes Favoráveis:</strong> Ambientes previsíveis e estáveis.</p>
+                `,
+                'Conformidade': `
+                    <h3>Perfil Predominante: Analítico</h3>
+                    <p><strong>Características:</strong> Detalhista, preciso, metódico.</p>
+                    <p><strong>Pontos Fortes:</strong> Excelente em análise de dados e implementação de processos.</p>
+                    <p><strong>Pontos Fracos:</strong> Pode ser excessivamente crítico ou inflexível.</p>
+                    <p><strong>Tomada de Decisão:</strong> Baseada em dados e fatos.</p>
+                    <p><strong>Ambientes Favoráveis:</strong> Ambientes que valorizam precisão e qualidade.</p>
+                `,
+            };
+            return descriptions[profile];
+        }
+
+        function getCombinedProfileDescription(profile1, profile2) {
+            const descriptions = {
+                'DI': `
+                    <h3>Combinação: Dominante-Influente</h3>
+                    <p><strong>Características:</strong> Líder carismático, persuasivo, motivador.</p>
+                    <p><strong>Pontos Fortes:</strong> Capacidade de motivar e influenciar grupos, excelente em situações sociais e de networking.</p>
+                    <p><strong>Pontos Fracos:</strong> Pode ser impulsivo ou indeciso devido à ênfase na aceitação social.</p>
+                    <p><strong>Tomada de Decisão:</strong> Rápida, baseada em intuição e persuasão.</p>
+                    <p><strong>Ambientes Favoráveis:</strong> Vendas, marketing, e relações públicas onde o carisma é crucial.</p>
+                `,
+                'DS': `
+                    <h3>Combinação: Dominante-Estável</h3>
+                    <p><strong>Características:</strong> Líder firme, confiável, equilibrado.</p>
+                    <p><strong>Pontos Fortes:</strong> Forte capacidade de liderança e estabilidade emocional.</p>
+                    <p><strong>Pontos Fracos:</strong> Pode resistir a mudanças rápidas ou imprevistas.</p>
+                    <p><strong>Tomada de Decisão:</strong> Racional, ponderada, mas decisiva.</p>
+                    <p><strong>Ambientes Favoráveis:</strong> Gestão de operações e ambientes corporativos estáveis.</p>
+                `,
+                'DC': `
+                    <h3>Combinação: Dominante-Analítico</h3>
+                    <p><strong>Características:</strong> Decisivo, orientado por dados, crítico.</p>
+                    <p><strong>Pontos Fortes:</strong> Excelente análise de dados e tomada de decisões informadas.</p>
+                    <p><strong>Pontos Fracos:</strong> Pode ser muito crítico ou rígido em suas expectativas.</p>
+                    <p><strong>Tomada de Decisão:</strong> Baseada em dados, factual, metódica.</p>
+                    <p><strong>Ambientes Favoráveis:</strong> Gerenciamento de projetos, engenharia e TI.</p>
+                `,
+                'IS': `
+                    <h3>Combinação: Influente-Estável</h3>
+                    <p><strong>Características:</strong> Comunicativo, empático, colaborativo.</p>
+                    <p><strong>Pontos Fortes:</strong> Excelentes habilidades interpessoais e de mediação.</p>
+                    <p><strong>Pontos Fracos:</strong> Pode evitar conflitos ou ter dificuldade em tomar decisões difíceis.</p>
+                    <p><strong>Tomada de Decisão:</strong> Empática, colaborativa, orientada para o consenso.</p>
+                    <p><strong>Ambientes Favoráveis:</strong> Recursos humanos, desenvolvimento de equipes e serviço ao cliente.</p>
+                `,
+                'IC': `
+                    <h3>Combinação: Influente-Analítico</h3>
+                    <p><strong>Características:</strong> Criativo, detalhista, persuasivo.</p>
+                    <p><strong>Pontos Fortes:</strong> Habilidades criativas e analíticas em equilíbrio.</p>
+                    <p><strong>Pontos Fracos:</strong> Pode ser indeciso devido a análise excessiva.</p>
+                    <p><strong>Tomada de Decisão:</strong> Criativa, baseada em dados e tendências.</p>
+                    <p><strong>Ambientes Favoráveis:</strong> Marketing digital, design e análise de mercado.</p>
+                `,
+                'SC': `
+                    <h3>Combinação: Estável-Analítico</h3>
+                    <p><strong>Características:</strong> Confiável, preciso, meticuloso.</p>
+                    <p><strong>Pontos Fortes:</strong> Confiabilidade em tarefas complexas e detalhadas.</p>
+                    <p><strong>Pontos Fracos:</strong> Pode ser avesso ao risco e mudanças.</p>
+                    <p><strong>Tomada de Decisão:</strong> Cautelosa, baseada em dados, orientada para precisão.</p>
+                    <p><strong>Ambientes Favoráveis:</strong> Pesquisa científica, engenharia e funções administrativas.</p>
+                `,
+                'DIE': `
+                    <h3>Combinação: Dominante-Influente-Estável</h3>
+                    <p><strong>Características:</strong> Líder equilibrado, motivador, colaborativo.</p>
+                    <p><strong>Pontos Fortes:</strong> Equilíbrio entre liderança, empatia e estabilidade.</p>
+                    <p><strong>Pontos Fracos:</strong> Pode ter dificuldade em equilibrar prioridades diversas.</p>
+                    <p><strong>Tomada de Decisão:</strong> Equilibrada, empática, focada em resultados.</p>
+                    <p><strong>Ambientes Favoráveis:</strong> Gestão de equipe e liderança organizacional.</p>
+                `,
+                'DIC': `
+                    <h3>Combinação: Dominante-Influente-Analítico</h3>
+                    <p><strong>Características:</strong> Visionário, orientado por dados, persuasivo.</p>
+                    <p><strong>Pontos Fortes:</strong> Visão estratégica combinada com habilidades analíticas.</p>
+                    <p><strong>Pontos Fracos:</strong> Pode ser excessivamente crítico ou exigir padrões elevados.</p>
+                    <p><strong>Tomada de Decisão:</strong> Estratégica, baseada em dados, influente.</p>
+                    <p><strong>Ambientes Favoráveis:</strong> Estratégia corporativa e inovação.</p>
+                `,
+                'DSC': `
+                    <h3>Combinação: Dominante-Estável-Analítico</h3>
+                    <p><strong>Características:</strong> Estrategista confiável, orientado para resultados.</p>
+                    <p><strong>Pontos Fortes:</strong> Forte orientação para a execução e precisão.</p>
+                    <p><strong>Pontos Fracos:</strong> Pode ser inflexível em situações de mudança.</p>
+                    <p><strong>Tomada de Decisão:</strong> Metódica, racional, orientada para o sucesso.</p>
+                    <p><strong>Ambientes Favoráveis:</strong> Consultoria de negócios e gestão de operações.</p>
+                `,
+                'ISC': `
+                    <h3>Combinação: Influente-Estável-Analítico</h3>
+                    <p><strong>Características:</strong> Criativo, colaborativo, analítico.</p>
+                    <p><strong>Pontos Fortes:</strong> Forte capacidade de colaboração e análise.</p>
+                    <p><strong>Pontos Fracos:</strong> Pode hesitar em tomar decisões rápidas.</p>
+                    <p><strong>Tomada de Decisão:</strong> Colaborativa, analítica, orientada para inovação.</p>
+                    <p><strong>Ambientes Favoráveis:</strong> Gestão de produtos e desenvolvimento de equipe.</p>
+                `,
+            };
+            return descriptions[profile1 + profile2] || descriptions[profile2 + profile1];
+        }
+
+        function resetTest() {
+            currentQuestion = 1;
+            results.D = results.I = results.S = results.C = 0;
+            document.getElementById('questionContainer').style.display = 'block';
+            document.getElementById('resultContainer').style.display = 'none';
+            document.getElementById(`question${currentQuestion}`).classList.remove('hide');
+            updateProgressBar();
+        }
+
+        function printResults() {
+            window.print();
+        }
+
     </script>
 </body>
-
 </html>
