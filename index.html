@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -64,7 +65,7 @@
 
         .button {
             padding: 10px 20px;
-            background-color: #2196f3; /* Azul */
+            background-color: #2196f3;
             color: white;
             border: none;
             border-radius: 5px;
@@ -74,7 +75,7 @@
         }
 
         .button:hover {
-            background-color: #1976d2; /* Azul escuro */
+            background-color: #1976d2;
         }
 
         @keyframes fadeIn {
@@ -116,9 +117,12 @@
             body * {
                 visibility: hidden;
             }
-            #resultContainer, #resultContainer * {
+
+            #resultContainer,
+            #resultContainer * {
                 visibility: visible;
             }
+
             #resultContainer {
                 position: absolute;
                 left: 0;
@@ -129,8 +133,23 @@
             }
         }
 
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            #nameInput {
+                font-size: 14px;
+            }
+
+            .button {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <p>Por favor, responda ao teste de acordo com quem você realmente é, não como você deseja ser.</p>
@@ -139,7 +158,7 @@
         <div class="progress-bar">
             <div class="progress" id="progress"></div>
         </div>
-        
+
         <div id="questionContainer">
             <!-- Question Cards -->
             <div class="card" id="question1">
@@ -442,20 +461,24 @@
 
         function displayDetailedResults(data, labels) {
             const detailedResult = document.getElementById('detailedResult');
-            const max1 = Math.max(...data);
+            const sortedData = data.slice().sort((a, b) => b - a);
+            const max1 = sortedData[0];
+            const max2 = sortedData[1];
             const index1 = data.indexOf(max1);
-            const max2 = Math.max(...data.filter((_, i) => i !== index1));
-            const index2 = data.indexOf(max2);
+            const index2 = data.lastIndexOf(max2);
 
             let description = '';
             if (max1 > 50) {
                 // Perfil único predominante
                 description = getProfileDescription(labels[index1]);
-            } else {
+            } else if (max1 >= 20) {
                 // Combinação de dois perfis
                 const profile1 = labels[index1].charAt(0);
                 const profile2 = labels[index2].charAt(0);
                 description = getCombinedProfileDescription(profile1, profile2);
+            } else {
+                // Caso onde todos os perfis têm pontuações baixas
+                description = "<h3>Nenhum perfil predominante</h3><p>Os resultados indicam que você tem características equilibradas entre todos os tipos DISC.</p>";
             }
 
             detailedResult.innerHTML = description;
@@ -597,7 +620,7 @@
         function printResults() {
             window.print();
         }
-
     </script>
 </body>
+
 </html>
