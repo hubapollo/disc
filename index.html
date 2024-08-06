@@ -471,7 +471,7 @@
             if (max1 > 50) {
                 // Perfil único predominante
                 description = getProfileDescription(labels[index1]);
-            } else if (max1 >= 20) {
+            } else if (max1 >= 20 || max2 >= 20) {
                 // Combinação de dois perfis
                 const profile1 = labels[index1].charAt(0);
                 const profile2 = labels[index2].charAt(0);
@@ -571,40 +571,10 @@
                     <p><strong>Pontos Fracos:</strong> Pode ser avesso ao risco e mudanças.</p>
                     <p><strong>Tomada de Decisão:</strong> Cautelosa, baseada em dados, orientada para precisão.</p>
                     <p><strong>Ambientes Favoráveis:</strong> Pesquisa científica, engenharia e funções administrativas.</p>
-                `,
-                'DIE': `
-                    <h3>Combinação: Dominante-Influente-Estável</h3>
-                    <p><strong>Características:</strong> Líder equilibrado, motivador, colaborativo.</p>
-                    <p><strong>Pontos Fortes:</strong> Equilíbrio entre liderança, empatia e estabilidade.</p>
-                    <p><strong>Pontos Fracos:</strong> Pode ter dificuldade em equilibrar prioridades diversas.</p>
-                    <p><strong>Tomada de Decisão:</strong> Equilibrada, empática, focada em resultados.</p>
-                    <p><strong>Ambientes Favoráveis:</strong> Gestão de equipe e liderança organizacional.</p>
-                `,
-                'DIC': `
-                    <h3>Combinação: Dominante-Influente-Analítico</h3>
-                    <p><strong>Características:</strong> Visionário, orientado por dados, persuasivo.</p>
-                    <p><strong>Pontos Fortes:</strong> Visão estratégica combinada com habilidades analíticas.</p>
-                    <p><strong>Pontos Fracos:</strong> Pode ser excessivamente crítico ou exigir padrões elevados.</p>
-                    <p><strong>Tomada de Decisão:</strong> Estratégica, baseada em dados, influente.</p>
-                    <p><strong>Ambientes Favoráveis:</strong> Estratégia corporativa e inovação.</p>
-                `,
-                'DSC': `
-                    <h3>Combinação: Dominante-Estável-Analítico</h3>
-                    <p><strong>Características:</strong> Estrategista confiável, orientado para resultados.</p>
-                    <p><strong>Pontos Fortes:</strong> Forte orientação para a execução e precisão.</p>
-                    <p><strong>Pontos Fracos:</strong> Pode ser inflexível em situações de mudança.</p>
-                    <p><strong>Tomada de Decisão:</strong> Metódica, racional, orientada para o sucesso.</p>
-                    <p><strong>Ambientes Favoráveis:</strong> Consultoria de negócios e gestão de operações.</p>
-                `,
-                'ISC': `
-                    <h3>Combinação: Influente-Estável-Analítico</h3>
-                    <p><strong>Características:</strong> Criativo, colaborativo, analítico.</p>
-                    <p><strong>Pontos Fortes:</strong> Forte capacidade de colaboração e análise.</p>
-                    <p><strong>Pontos Fracos:</strong> Pode hesitar em tomar decisões rápidas.</p>
-                    <p><strong>Tomada de Decisão:</strong> Colaborativa, analítica, orientada para inovação.</p>
-                    <p><strong>Ambientes Favoráveis:</strong> Gestão de produtos e desenvolvimento de equipe.</p>
-                `,
+                `
             };
+
+            // Retornar a descrição correta independentemente da ordem dos perfis
             return descriptions[profile1 + profile2] || descriptions[profile2 + profile1];
         }
 
