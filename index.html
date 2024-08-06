@@ -172,7 +172,6 @@
                 </div>
             </div>
 
-            <!-- Repeat Question Cards as Needed -->
             <div class="card hide" id="question2">
                 <h2>Pergunta 2</h2>
                 <p>Quando enfrento um desafio, eu geralmente:</p>
@@ -423,8 +422,8 @@
             document.getElementById('questionContainer').style.display = 'none';
             document.getElementById('resultContainer').style.display = 'block';
 
-            const name = document.getElementById('nameInput').value;
-            document.getElementById('userName').innerText = `Nome: ${name}`;
+            const name = document.getElementById('nameInput').value.trim();
+            document.getElementById('userName').innerText = name ? `Nome: ${name}` : "Nome não fornecido";
 
             const data = [
                 (results.D / totalQuestions) * 100,
@@ -461,17 +460,21 @@
 
         function displayDetailedResults(data, labels) {
             const detailedResult = document.getElementById('detailedResult');
-            const sortedData = data.slice().sort((a, b) => b - a);
-            const max1 = sortedData[0];
-            const max2 = sortedData[1];
-            const index1 = data.indexOf(max1);
-            const index2 = data.lastIndexOf(max2);
+            const sortedIndices = data
+                .map((value, index) => [value, index])
+                .sort((a, b) => b[0] - a[0]);
+
+            const max1 = sortedIndices[0][0];
+            const max2 = sortedIndices[1][0];
+            const index1 = sortedIndices[0][1];
+            const index2 = sortedIndices[1][1];
 
             let description = '';
+
             if (max1 > 50) {
                 // Perfil único predominante
                 description = getProfileDescription(labels[index1]);
-            } else if (max1 >= 20 || max2 >= 20) {
+            } else if (max1 >= 20 && max2 >= 20) {
                 // Combinação de dois perfis
                 const profile1 = labels[index1].charAt(0);
                 const profile2 = labels[index2].charAt(0);
@@ -580,10 +583,17 @@
 
         function resetTest() {
             currentQuestion = 1;
-            results.D = results.I = results.S = results.C = 0;
+            results.D = 0;
+            results.I = 0;
+            results.S = 0;
+            results.C = 0;
             document.getElementById('questionContainer').style.display = 'block';
             document.getElementById('resultContainer').style.display = 'none';
-            document.getElementById(`question${currentQuestion}`).classList.remove('hide');
+            const allQuestions = document.querySelectorAll('.card');
+            allQuestions.forEach((card, index) => {
+                card.classList.add('hide');
+                if (index === 0) card.classList.remove('hide');
+            });
             updateProgressBar();
         }
 
