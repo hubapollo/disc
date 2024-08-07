@@ -472,15 +472,12 @@
             let description = '';
 
             if (max1 > 50) {
-                // Perfil único predominante
                 description = getProfileDescription(labels[index1]);
             } else if (max1 >= 20 && max2 >= 20) {
-                // Combinação de dois perfis
                 const profile1 = labels[index1].charAt(0);
                 const profile2 = labels[index2].charAt(0);
                 description = getCombinedProfileDescription(profile1, profile2);
             } else {
-                // Caso onde todos os perfis têm pontuações baixas
                 description = "<h3>Nenhum perfil predominante</h3><p>Os resultados indicam que você tem características equilibradas entre todos os tipos DISC.</p>";
             }
 
