@@ -480,7 +480,8 @@
                 // Perfil único predominante ou combinação de dois perfis
                 const profile1 = labels[index1].charAt(0);
                 const profile2 = labels[index2].charAt(0);
-                if (max1 === max2) {
+                
+                if (max2>20) {
                     // Combinação de dois perfis mais altos
                     description = getCombinedProfileDescription(profile1, profile2);
                 } else {
